@@ -74,19 +74,17 @@ def mel_spectrogram(y, n_fft, num_mels, sampling_rate, hop_size, win_size, fmin,
 
 def get_dataset_filelist(a):
     with open(a.input_training_file, 'r', encoding='utf-8') as fi:
-        training_files = [os.path.join(a.input_wavs_dir, x.split('|')[0] + '.wav')
-                          for x in fi.read().split('\n') if len(x) > 0]
+        training_files = [x for x in fi.read().split('\n') if len(x) > 0]
 
     with open(a.input_validation_file, 'r', encoding='utf-8') as fi:
-        validation_files = [os.path.join(a.input_wavs_dir, x.split('|')[0] + '.wav')
-                            for x in fi.read().split('\n') if len(x) > 0]
+        validation_files = [x for x in fi.read().split('\n') if len(x) > 0]
     return training_files, validation_files
 
 
 class MelDataset(torch.utils.data.Dataset):
     def __init__(self, training_files, segment_size, n_fft, num_mels,
                  hop_size, win_size, sampling_rate,  fmin, fmax, split=True, shuffle=True, n_cache_reuse=1,
-                 device=None, fmax_loss=None, fine_tuning=False, base_mels_path=None):
+                 device=None, fmax_loss=None, fine_tuning=True, base_mels_path=None):
         self.audio_files = training_files
         random.seed(1234)
         if shuffle:
@@ -140,8 +138,7 @@ class MelDataset(torch.utils.data.Dataset):
                                   self.sampling_rate, self.hop_size, self.win_size, self.fmin, self.fmax,
                                   center=False)
         else:
-            mel = np.load(
-                os.path.join(self.base_mels_path, os.path.splitext(os.path.split(filename)[-1])[0] + '.npy'))
+            mel = np.load(filename.replace("/wav/","/mel/").replace(".wav",".npy").replace(".flac",".npy"))
             mel = torch.from_numpy(mel)
 
             if len(mel.shape) < 3:
