@@ -9,6 +9,8 @@ from scipy.io.wavfile import write
 from env import AttrDict
 from meldataset import mel_spectrogram, MAX_WAV_VALUE, load_wav
 from models import Generator
+from pesq import pesq
+from pystoi.stoi import stoi
 
 h = None
 device = None
@@ -51,15 +53,22 @@ def inference(a):
             wav, sr = load_wav(os.path.join(a.input_wavs_dir, filname))
             wav = wav / MAX_WAV_VALUE
             wav = torch.FloatTensor(wav).to(device)
+            
             x = get_mel(wav.unsqueeze(0))
             y_g_hat = generator(x)
             audio = y_g_hat.squeeze()
             audio = audio * MAX_WAV_VALUE
             audio = audio.cpu().numpy().astype('int16')
+            print("mel.shape",x.shape, "input wav.shape",wav.shape, "output_wav.shape", audio.shape)
 
             output_file = os.path.join(a.output_dir, os.path.splitext(filname)[0] + '_generated.wav')
             write(output_file, h.sampling_rate, audio)
-            print(output_file)
+            #print(output_file)
+            
+            pesq_score = pesq(16000,wav.squeeze().detach().numpy(), audio.squeeze().detach().numpy())
+            stoi_score = stoi(wav.squeeze().detach().numpy(), audio.squeeze().detach().numpy(),16000)
+            print("pesq_score",pesq_score,"stoi_score",stoi_score)
+    
 
 
 def main():

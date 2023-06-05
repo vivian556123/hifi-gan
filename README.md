@@ -103,3 +103,8 @@ You can change the path by adding `--output_dir` option.
 We referred to [WaveGlow](https://github.com/NVIDIA/waveglow), [MelGAN](https://github.com/descriptinc/melgan-neurips) 
 and [Tacotron2](https://github.com/NVIDIA/tacotron2) to implement this.
 
+
+### 
+Leying Train:
+
+CUDA_VISIBLE_DEVICES=1 python train.py --input_training_file=/home/aiscuser/hifigan-train-wavlist --input_validation_file=/home/aiscuser/Audiocaps/test_mel/audiocaps_test.wav_lst --checkpoint_path=/modelblob/users/v-leyzhang/exp/hifigan/res1 --checkpoint_interval=2000 --fine_tuning True --config config_ly.json
