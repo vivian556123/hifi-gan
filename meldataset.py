@@ -138,7 +138,10 @@ class MelDataset(torch.utils.data.Dataset):
                                   self.sampling_rate, self.hop_size, self.win_size, self.fmin, self.fmax,
                                   center=False)
         else:
-            mel = np.load(filename.replace("/wav/","/mel/").replace(".wav",".npy").replace(".flac",".npy"))
+            if filename.split(".")[-1] == "flac":
+                mel = np.load(filename.replace("/wav/","/mel/")+'.npy')
+            else:
+                mel = np.load(filename.replace("/wav/","/mel/").replace(".wav",".npy"))
             mel = torch.from_numpy(mel)
 
             if len(mel.shape) < 3:
