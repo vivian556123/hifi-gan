@@ -78,7 +78,7 @@ def train(rank, a, h):
     #training_filelist, validation_filelist = get_dataset_filelist(a)
     training_filelist = glob.glob(os.path.join(a.input_wavs_dir,"*/*.wav"))
     validation_filelist = glob.glob(os.path.join(a.input_val_wavs_dir,"*/*.wav"))
-    validation_filelist = validation_filelist[:100]
+    validation_filelist = validation_filelist[:200]
     if rank == 0:
         print("h",h)
         print("training_filelist",len(training_filelist), "validation_filelist", len(validation_filelist))
