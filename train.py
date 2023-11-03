@@ -75,11 +75,12 @@ def train(rank, a, h):
     scheduler_d = torch.optim.lr_scheduler.ExponentialLR(optim_d, gamma=h.lr_decay, last_epoch=last_epoch)
 
     print("loading datasets")
-    print("h",h)
     #training_filelist, validation_filelist = get_dataset_filelist(a)
     training_filelist = glob.glob(os.path.join(a.input_wavs_dir,"*/*.wav"))
     validation_filelist = glob.glob(os.path.join(a.input_val_wavs_dir,"*/*.wav"))
-
+    if rank == 0:
+        print("h",h)
+        print("training_filelist",len(training_filelist), "validation_filelist", len(validation_filelist))
 
     trainset = MelDataset(training_filelist, h.segment_size, h.n_fft, h.num_mels,
                           h.hop_size, h.win_size, h.sampling_rate, h.fmin, h.fmax, n_cache_reuse=0,
