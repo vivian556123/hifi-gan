@@ -1,6 +1,6 @@
 {
     "resblock": "1",
-    "num_gpus": 8,
+    "num_gpus": 0,
     "batch_size": 16,
     "learning_rate": 0.0002,
     "adam_b1": 0.8,
@@ -8,18 +8,18 @@
     "lr_decay": 0.999,
     "seed": 1234,
 
-    "upsample_rates": [8,8,2,2],
-    "upsample_kernel_sizes": [16,16,4,4],
-    "upsample_initial_channel": 512,
+    "upsample_rates": [5,4,4,2],
+    "upsample_kernel_sizes": [8,8,4,4],
+    "upsample_initial_channel": 500,
     "resblock_kernel_sizes": [3,7,11],
     "resblock_dilation_sizes": [[1,3,5], [1,3,5], [1,3,5]],
 
-    "segment_size": 8192,
+    "segment_size": 8032,
     "num_mels": 80,
-    "num_freq": 241,
-    "n_fft": 240,
-    "hop_size": 80,
-    "win_size": 240,
+    "num_freq":481,
+    "n_fft": 480,
+    "hop_size": 160,
+    "win_size": 480,
 
     "sampling_rate": 8000,
 
