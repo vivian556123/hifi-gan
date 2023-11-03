@@ -17,6 +17,8 @@ from meldataset import MelDataset, mel_spectrogram, get_dataset_filelist
 from models import Generator, MultiPeriodDiscriminator, MultiScaleDiscriminator, feature_loss, generator_loss,\
     discriminator_loss
 from utils import plot_spectrogram, scan_checkpoint, load_checkpoint, save_checkpoint
+import glob
+import os
 
 torch.backends.cudnn.benchmark = True
 
@@ -73,7 +75,10 @@ def train(rank, a, h):
     scheduler_d = torch.optim.lr_scheduler.ExponentialLR(optim_d, gamma=h.lr_decay, last_epoch=last_epoch)
 
     print("loading datasets")
-    training_filelist, validation_filelist = get_dataset_filelist(a)
+    #training_filelist, validation_filelist = get_dataset_filelist(a)
+    training_filelist = glob.glob(os.path.join(a.input_wavs_dir,"*.wav"))
+    validation_filelist = glob.glob(os.path.join(a.input_val_wavs_dir,"*.wav"))
+
 
     trainset = MelDataset(training_filelist, h.segment_size, h.n_fft, h.num_mels,
                           h.hop_size, h.win_size, h.sampling_rate, h.fmin, h.fmax, n_cache_reuse=0,
@@ -233,6 +238,7 @@ def main():
 
     parser.add_argument('--group_name', default=None)
     parser.add_argument('--input_wavs_dir', default='LJSpeech-1.1/wavs')
+    parser.add_argument('--input_val_wavs_dir', default='LJSpeech-1.1/wavs')
     parser.add_argument('--input_mels_dir', default='ft_dataset')
     parser.add_argument('--input_training_file', default='LJSpeech-1.1/training.txt')
     parser.add_argument('--input_validation_file', default='LJSpeech-1.1/validation.txt')

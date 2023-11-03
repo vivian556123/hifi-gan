@@ -81,6 +81,7 @@ def get_dataset_filelist(a):
     return training_files, validation_files
 
 
+
 class MelDataset(torch.utils.data.Dataset):
     def __init__(self, training_files, segment_size, n_fft, num_mels,
                  hop_size, win_size, sampling_rate,  fmin, fmax, split=True, shuffle=True, n_cache_reuse=1,
