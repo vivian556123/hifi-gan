@@ -10,7 +10,12 @@ from env import AttrDict
 from meldataset import mel_spectrogram, MAX_WAV_VALUE, load_wav
 from models import Generator
 from pesq import pesq
-from pystoi.stoi import stoi
+from pystoi import stoi
+from torchmetrics.audio import ScaleInvariantSignalNoiseRatio
+from pypesq import pesq as py_pesq
+import pandas as pd
+from tqdm import tqdm
+from metric_utils import mean_std
 
 h = None
 device = None
@@ -42,15 +47,22 @@ def inference(a):
     state_dict_g = load_checkpoint(a.checkpoint_file, device)
     generator.load_state_dict(state_dict_g['generator'])
 
-    filelist = os.listdir(a.input_wavs_dir)
+    #filelist = os.listdir(a.input_wavs_dir)
+    filelist = sorted(glob.glob(os.path.join(a.input_wavs_dir, "*.wav")))
 
     os.makedirs(a.output_dir, exist_ok=True)
 
     generator.eval()
     generator.remove_weight_norm()
+    
+    data = {"filename": [], "pesq_nb":[], "estoi": [], "stoi":[]}
+    sr = 8000
+
+    si_snr = ScaleInvariantSignalNoiseRatio()
     with torch.no_grad():
-        for i, filname in enumerate(filelist):
-            wav, sr = load_wav(os.path.join(a.input_wavs_dir, filname))
+        for i, wavfile in enumerate(tqdm(filelist)):
+            filename = os.path.basename(wavfile)
+            wav, sr = load_wav(wavfile)
             wav = wav / MAX_WAV_VALUE
             wav = torch.FloatTensor(wav).to(device)
             
@@ -59,17 +71,27 @@ def inference(a):
             audio = y_g_hat.squeeze()
             audio = audio * MAX_WAV_VALUE
             audio = audio.cpu().numpy().astype('int16')
-            print("mel.shape",x.shape, "input wav.shape",wav.shape, "output_wav.shape", audio.shape)
+            #print("mel.shape",x.shape, "input wav.shape",wav.shape, "output_wav.shape", audio.shape)
 
-            output_file = os.path.join(a.output_dir, os.path.splitext(filname)[0] + '_generated.wav')
+            output_file = os.path.join(a.output_dir, os.path.splitext(filename)[0] + '_generated.wav')
             write(output_file, h.sampling_rate, audio)
             #print(output_file)
             
-            pesq_score = pesq(16000,wav.squeeze().detach().numpy(), audio.squeeze().detach().numpy())
-            stoi_score = stoi(wav.squeeze().detach().numpy(), audio.squeeze().detach().numpy(),16000)
-            print("pesq_score",pesq_score,"stoi_score",stoi_score)
+            wav = wav.squeeze().cpu().detach().numpy()
+            min_len = min(len(wav),len(audio))
+            #data["pesq"].append(pesq(sr, wav[:min_len],audio[:min_len], 'wb'))
+            data["pesq_nb"].append(pesq(sr, wav[:min_len], audio[:min_len], 'nb'))
+            estoi_score = stoi(wav[:min_len], audio[:min_len], sr,  extended=True)
+            stoi_score = stoi(wav[:min_len], audio[:min_len], sr,  extended=False)
+            data["filename"].append(filename)
+            data["estoi"].append(estoi_score)
+            data["stoi"].append(stoi_score)
+    df = pd.DataFrame(data)
+    df.to_csv(os.path.join(a.output_dir, "_results.csv"), index=False)
+    print("PESQ_nb: {:.2f} ± {:.2f}".format(*mean_std(df["pesq_nb"].to_numpy())))
+    print("ESTOI: {:.2f} ± {:.2f}".format(*mean_std(df["estoi"].to_numpy())))
+    print("STOI: {:.2f} ± {:.2f}".format(*mean_std(df["stoi"].to_numpy())))
     
-
 
 def main():
     print('Initializing Inference Process..')
@@ -82,11 +104,12 @@ def main():
 
     config_file = os.path.join(os.path.split(a.checkpoint_file)[0], 'config.json')
     with open(config_file) as f:
-        data = f.read()
+        data = f.read() 
 
     global h
     json_config = json.loads(data)
     h = AttrDict(json_config)
+    print("config",h)
 
     torch.manual_seed(h.seed)
     global device
