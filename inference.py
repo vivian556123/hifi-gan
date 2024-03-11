@@ -118,7 +118,7 @@ def main():
         device = torch.device('cuda')
     else:
         device = torch.device('cpu')
-
+    print("device",device)
     inference(a)
 
 
