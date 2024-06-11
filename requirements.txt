@@ -1,6 +1,5 @@
-torch==1.4.0
 numpy==1.17.4
-librosa==0.7.2
+librosa
 scipy==1.4.1
 tensorboard==2.0
 soundfile==0.10.3.post1

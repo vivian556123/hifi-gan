@@ -76,8 +76,8 @@ def train(rank, a, h):
 
     print("loading datasets")
     #training_filelist, validation_filelist = get_dataset_filelist(a)
-    training_filelist = glob.glob(os.path.join(a.input_wavs_dir,"*/*/*.wav"))
-    validation_filelist = glob.glob(os.path.join(a.input_val_wavs_dir,"*/*/*.wav"))
+    training_filelist = glob.glob("/data/import/MagicData-CLAM4VC/WAV/*/*.wav") + glob.glob("/data/import/MagicData-RAMC/processed/*/train/*.wav") + glob.glob("/exp/leying.zhang/WenetSpeech4TTS/WenetSpeech4TTS/*/*/*/*.wav")
+    validation_filelist = glob.glob("/data/import/MagicData-RAMC/processed/min_10s/test/*.wav")
     validation_filelist = validation_filelist[:200]
     if rank == 0:
         print("h",h)
